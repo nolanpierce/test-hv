@@ -36,6 +36,9 @@
     <ClCompile Include="src\vmxon.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\svm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".framework\types.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\vmxon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\svm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include=".framework\arch\segments.h">

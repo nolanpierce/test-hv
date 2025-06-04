@@ -141,6 +141,7 @@
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\vmexit_handler.c" />
     <ClCompile Include="src\vmxon.c" />
+    <ClCompile Include="src\svm.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".framework\arch\cpuid.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include=".framework\types.h" />
     <ClInclude Include="headers\vmx.h" />
     <ClInclude Include="headers\vmxon.h" />
+    <ClInclude Include="headers\svm.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\vmintrin.asm">
