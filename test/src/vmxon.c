@@ -1,4 +1,6 @@
 #include "vmxon.h"
+#include "svm.h"
+#include <string.h>
 
 int is_vmx_supported(void)
 {
@@ -79,6 +81,35 @@ void disable_vmx(void)
     __writecr4(cr4.control);
 
     logger("VMX disabled.\n");
+}
+
+static void get_cpu_vendor(char* vendor)
+{
+    int info[4];
+    __cpuid(info, 0);
+    ((int*)vendor)[0] = info[1];
+    ((int*)vendor)[1] = info[3];
+    ((int*)vendor)[2] = info[2];
+    vendor[12] = '\0';
+}
+
+int initialize_virtualization(void)
+{
+    char vendor[13];
+    get_cpu_vendor(vendor);
+    logger("Detected CPU vendor: %s\n", vendor);
+
+    if (strcmp(vendor, AMD_VENDOR_ID) == 0) {
+        if (!is_svm_supported()) {
+            logger("SVM not supported on this processor.\n");
+            return FALSE;
+        }
+        return enable_svm();
+    }
+
+    if (!is_vmx_supported())
+        return FALSE;
+    return enable_vmx();
 }
 
 
@@ -304,8 +335,8 @@ void init_logical_processor(struct __vmm_context_t* context, void* guest_rsp)
 
     adjust_control_registers();
 
-    if (!is_vmx_supported()) {
-        logger("VMX operation is not supported on this processor.\n");
+    if (!initialize_virtualization()) {
+        logger("Failed to initialize virtualization on this processor.\n");
         free_vmm_context(vmm_context);
         return;
     }
@@ -325,6 +356,15 @@ void init_logical_processor(struct __vmm_context_t* context, void* guest_rsp)
         return;
     }
 
+    if (!allocate_vmcs_region(vcpu)) {
+        logger("Failed to allocate VMCS for vcpu %d.\n", processor_number);
+        __vmx_off();
+        free_vcpu(vcpu);
+        disable_vmx();
+        free_vmm_context(vmm_context);
+        return;
+    }
+
     logger("vcpu %d is now in VMX operation.\n", processor_number);
 }
 
@@ -333,11 +373,18 @@ int vmm_init(void)
     struct __vmm_context_t* vmm_context;
     PROCESSOR_NUMBER processor_number;
     GROUP_AFFINITY affinity, old_affinity;
-    KIRQL old_irql;
+
     vmm_context = allocate_vmm_context();
+    if (!vmm_context)
+        return FALSE;
 
     for (unsigned iter = 0; iter < vmm_context->processor_count; iter++) {
         vmm_context->vcpu_table[iter] = allocate_vcpu();
+        if (!vmm_context->vcpu_table[iter]) {
+            logger("Failed to allocate vCPU %u\n", iter);
+            free_vmm_context(vmm_context);
+            return FALSE;
+        }
         vmm_context->vcpu_table[iter]->vmm_context = vmm_context;
     }
 
@@ -349,8 +396,8 @@ int vmm_init(void)
         KeSetSystemGroupAffinityThread(&affinity, &old_affinity);
         init_logical_processor(vmm_context, 0);
         KeRevertToUserGroupAffinityThread(&old_affinity);
-
     }
+
     return TRUE;
 }
 

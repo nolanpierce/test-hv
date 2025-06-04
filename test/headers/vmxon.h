@@ -69,6 +69,7 @@ extern void vmm_entrypoint(void); // Declare the VM exit handler entry point
 extern int						is_vmx_supported(void);
 extern int						enable_vmx(void);
 extern void						disable_vmx(void);
+extern int initialize_virtualization(void);
 
 extern void						adjust_control_registers(void);
 extern struct __vmm_context_t*	allocate_vmm_context(void);

@@ -13,7 +13,8 @@
 
 BOOLEAN vmexit_handler(struct __vmexit_guest_registers_t* guest_regs)
 {
-    DbgBreakPointWithStatus(STATUS_BREAKPOINT);
+    UNREFERENCED_PARAMETER(guest_regs);
+    logger("VMEXIT occurred\n");
 
     return TRUE; // Continue execution
 }

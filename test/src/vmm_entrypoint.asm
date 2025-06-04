@@ -3,6 +3,7 @@
 extern vmexit_handler : proc
 
 SAVE_GP macro
+        pushfq
         push    rax
         push    rcx
         push    rdx
@@ -36,6 +37,7 @@ RESTORE_GP macro
         pop     rdx
         pop     rcx
         pop     rax
+        popfq
 endm
 
 
@@ -74,8 +76,6 @@ exit:
         vmxoff
         jz      vmerror
         jc      vmerror
-        push    r8
-        popf
         mov     rsp, rdx
         push    rcx
         ret
